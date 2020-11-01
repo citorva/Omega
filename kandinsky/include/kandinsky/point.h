@@ -5,6 +5,7 @@
 
 class KDPoint {
 public:
+  constexpr KDPoint() : m_x(0), m_y(0) {}
   constexpr KDPoint(KDCoordinate x, KDCoordinate y) :
     m_x(x), m_y(y) {}
   KDCoordinate x() const { return m_x; }

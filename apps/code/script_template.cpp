@@ -84,6 +84,36 @@ def simulation(v_0=15,alpha=pi/4,h_0=2):
   grid()
   show())");
 
+constexpr ScriptTemplate polyTestScriptTemplate("test_polygon.py", "\x01" R"(from kandinsky import *
+from random import *
+from time import *
+
+polygon_number = 1000
+sizes = [16,32,48,64,96,128,168,192,240]
+vertex_count = 3
+
+screen_w = 320
+screen_h = 240
+
+def exec(size):
+  random_time = 0
+  bx = 320-240
+
+  begin = monotonic()
+
+  for i in range(polygon_number):
+    rnd_begin = monotonic()
+    X = [randint(0,screen_w) for _ in range(vertex_count)]
+    Y = [randint(0,screen_h) for _ in range(vertex_count)]
+    C = (randint(0,255),randint(0,255),randint(0,255))
+    random_time += monotonic() - rnd_begin
+
+    fill_polygon(X,Y,C)
+
+  return monotonic() - begin - random_time
+
+print("Temps d'execution:", time/polygon_number))");
+
 const ScriptTemplate * ScriptTemplate::Empty() {
   return &emptyScriptTemplate;
 }
@@ -102,6 +132,10 @@ const ScriptTemplate * ScriptTemplate::Polynomial() {
 
 const ScriptTemplate * ScriptTemplate::Parabola() {
   return &parabolaScriptTemplate;
+}
+
+const ScriptTemplate * ScriptTemplate::PolyTest() {
+  return &polyTestScriptTemplate;
 }
 
 }

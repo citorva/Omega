@@ -36,6 +36,9 @@ public:
   virtual void pushRect(KDRect, const KDColor * pixels) = 0;
   virtual void pushRectUniform(KDRect rect, KDColor color) = 0;
   virtual void pullRect(KDRect rect, KDColor * pixels) = 0;
+
+  // Polygon. Not anti-aliased.
+  void drawPolygon(const KDPoint *points, uint32_t number, KDColor color);
 protected:
   KDContext(KDPoint origin, KDRect clippingRect);
 private:

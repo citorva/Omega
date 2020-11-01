@@ -6,6 +6,30 @@ extern "C" {
 #include <ion.h>
 #include "port.h"
 
+// Method to populate items with a scalar or an array argument
+
+static size_t extractArgument(mp_obj_t arg, mp_obj_t ** items) {
+  size_t itemLength;
+  if (mp_obj_is_type(arg, &mp_type_tuple) || mp_obj_is_type(arg, &mp_type_list)) {
+    mp_obj_get_array(arg, &itemLength, items);
+  } else {
+    itemLength = 1;
+    *items = m_new(mp_obj_t, 1);
+    (*items)[0] = arg;
+  }
+  return itemLength;
+}
+
+// Extract two scalar or array arguments and check for their strickly equal dimension
+
+static size_t extractArgumentsAndCheckEqualSize(mp_obj_t x, mp_obj_t y, mp_obj_t ** xItems, mp_obj_t ** yItems) {
+  size_t xLength = extractArgument(x, xItems);
+  size_t yLength = extractArgument(y, yItems);
+  if (xLength != yLength) {
+    mp_raise_ValueError("x and y must be the same size");
+  }
+  return xLength;
+}
 
 static mp_obj_t TupleForKDColor(KDColor c) {
   mp_obj_tuple_t * t = static_cast<mp_obj_tuple_t *>(MP_OBJ_TO_PTR(mp_obj_new_tuple(3, NULL)));
@@ -93,6 +117,24 @@ mp_obj_t modkandinsky_fill_rect(size_t n_args, const mp_obj_t * args) {
   KDColor color = MicroPython::Color::Parse(args[4]);
   MicroPython::ExecutionEnvironment::currentExecutionEnvironment()->displaySandbox();
   KDIonContext::sharedContext()->fillRect(rect, color);
+  // Cf comment on modkandinsky_draw_string
+  micropython_port_interrupt_if_needed();
+  return mp_const_none;
+}
+
+mp_obj_t modkandinsky_fill_polygon(mp_obj_t xx, mp_obj_t yy, mp_obj_t color) {
+  mp_obj_t *x_array, *y_array;
+
+  size_t points_n = extractArgumentsAndCheckEqualSize(xx, yy, &x_array, &y_array);
+
+  KDPoint points[points_n];
+
+  for (size_t i = 0; i < points_n; i++) {
+    points[i] = KDPoint(mp_obj_get_int(x_array[i]), mp_obj_get_int(y_array[i]));
+  }
+
+  MicroPython::ExecutionEnvironment::currentExecutionEnvironment()->displaySandbox();
+  KDIonContext::sharedContext()->drawPolygon(points, points_n, MicroPython::Color::Parse(color));
   // Cf comment on modkandinsky_draw_string
   micropython_port_interrupt_if_needed();
   return mp_const_none;
